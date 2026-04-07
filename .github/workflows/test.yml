@@ -1,0 +1,17 @@
+name: JFrog OIDC Test
+on: workflow_dispatch 
+
+permissions:
+  id-token: write  # This is the most important part
+  contents: read
+
+jobs:
+  test-oidc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+          JF_URL: https://mill.jfrog.info:12238/ # Use your actual Artifactory URL
+        with:
+          oidc-provider-name: my-oidc-config # This must match the name in Artifactory
