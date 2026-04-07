@@ -12,6 +12,6 @@ jobs:
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
         env:
-          JF_URL: https://mill.jfrog.info:12238/ # Use your actual Artifactory URL
+          JF_URL: https://hts2.jfrog.io/ # Use your actual Artifactory URL
         with:
           oidc-provider-name: my-oidc-config # This must match the name in Artifactory
