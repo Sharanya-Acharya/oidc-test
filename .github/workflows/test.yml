@@ -1,9 +1,10 @@
 name: JFrog OIDC Test
-on: workflow_dispatch 
+on: 
+  workflow_dispatch: # Allows manual triggering from the Actions tab
 
 permissions:
-  id-token: write  # This is the most important part
-  contents: read
+  id-token: write  # Crucial: Allows GitHub to generate the OIDC token
+  contents: read   # Allows the runner to read repository content
 
 jobs:
   test-oidc:
@@ -12,6 +13,7 @@ jobs:
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v4
         env:
-          JF_URL: https://hts2.jfrog.io/ # Use your actual Artifactory URL
+          JF_URL: https://hts2.jfrog.io/ # Your actual Artifactory URL
         with:
-          oidc-provider-name: my-oidc-config # This must match the name in Artifactory
+          oidc-provider-name: my-oidc-config # Must match Provider Name in Artifactory
+          oidc-audience: jfrog-github        # Matches the Audience field in your screenshot
