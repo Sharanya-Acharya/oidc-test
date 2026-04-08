@@ -14,7 +14,7 @@ permissions:
 jobs:
   test-oidc:
     runs-on: ubuntu-latest
-    environment: dev # Crucial to match the Claims JSON
+    environment: dev
     steps:
       - name: Setup Artifactory OpenID access token
         if: github.event.inputs.use_open_id_connect == true
@@ -32,47 +32,6 @@ jobs:
           echo "OIDC_USER=${{ steps.jfrog-oicd.outputs.oidc-user }}" >> $GITHUB_ENV
           echo "OIDC_TOKEN=${{ steps.jfrog-oicd.outputs.oidc-token }}" >> $GITHUB_ENV
 
-      - name: Test Deployment Permissions
-        run: |
-          echo "Testing deployment as $OIDC_USER"
-          echo "hello world" > test.txt
-          jf rt upload test.txt czm-aden-generic-local/name: JFrog OIDC Test
-on: 
-  workflow_dispatch:
-    inputs:
-      use_open_id_connect:
-        description: 'Use OIDC'
-        default: true
-        type: boolean
-
-permissions:
-  id-token: write
-  contents: read
-
-jobs:
-  test-oidc:
-    runs-on: ubuntu-latest
-    environment: dev
-    steps:
-      # Replication of customer's failing step
-      - name: Setup Artifactory OpenID access token
-        if: github.event.inputs.use_open_id_connect == 'true' || inputs.use_open_id_connect == true
-        uses: jfrog/setup-jfrog-cli@v4.5.6
-        id: jfrog-oicd
-        env:
-          JF_URL: ${{ vars.ADEN_SERVER_JFROG_URL }}
-        with:
-          version: latest
-          oidc-provider-name: ${{ vars.ADEN_OIDC_PROVIDER }}
-          oidc-audience: ${{ vars.ADEN_OIDC_AUDIENCE }}
-
-      # Capturing the outputs as they do
-      - name: Store OIDC user and token in environment variables
-        run: |
-          echo "OIDC_USER=${{ steps.jfrog-oicd.outputs.oidc-user }}" >> $GITHUB_ENV
-          echo "OIDC_TOKEN=${{ steps.jfrog-oicd.outputs.oidc-token }}" >> $GITHUB_ENV
-
-      # Testing the permissions (Deployment test)
       - name: Test Deployment Permissions
         run: |
           echo "Testing deployment as $OIDC_USER"
