@@ -17,7 +17,7 @@ jobs:
     environment: dev
     steps:
       - name: Setup Artifactory OpenID access token
-        if: github.event.inputs.use_open_id_connect == true
+        if: ${{ github.event.inputs.use_open_id_connect == true }}
         uses: jfrog/setup-jfrog-cli@v4.5.6
         id: jfrog-oicd
         env:
