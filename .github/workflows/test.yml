@@ -38,5 +38,5 @@ jobs:
         run: |
           echo "Testing deployment as $OIDC_USER"
           echo "This step will likely fail or skip if the setup task errored out."
-          echo "replicate error" > test.txt
-          jf rt upload test.txt czm-aden-generic-local/
+          echo "replicate error" > new.txt
+          jf rt upload new.txt czm-aden-generic-local/
