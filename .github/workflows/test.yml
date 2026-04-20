@@ -1,4 +1,4 @@
-name: JFrog OIDC Test
+name: JFrog OIDC Error Replication
 on: 
   workflow_dispatch:
     inputs:
@@ -14,27 +14,29 @@ permissions:
 jobs:
   test-oidc:
     runs-on: ubuntu-latest
-    environment: dev
+    # Ensure this matches your GitHub Environment name
+    environment: dev 
     steps:
-      - name: Setup Artifactory OpenID access token
-        # Simplified condition to ensure it runs
+      - name: Setup JFrog CLI (Force Buggy Version)
         if: ${{ inputs.use_open_id_connect }}
-        uses: jfrog/setup-jfrog-cli@v4.5.6
-        id: jfrog-oicd
+        uses: jfrog/setup-jfrog-cli@v4
+        id: jfrog-oidc
         env:
           JF_URL: ${{ vars.ADEN_SERVER_JFROG_URL }}
         with:
-          version: latest
+          # Forcing 2.100.0 triggers the "2.100.0 < 2.75.0" logic error
+          version: 2.100.0
           oidc-provider-name: ${{ vars.ADEN_OIDC_PROVIDER }}
           oidc-audience: ${{ vars.ADEN_OIDC_AUDIENCE }}
 
-      - name: Store OIDC user and token in environment variables
+      - name: Store OIDC user and token
         run: |
-          echo "OIDC_USER=${{ steps.jfrog-oicd.outputs.oidc-user }}" >> $GITHUB_ENV
-          echo "OIDC_TOKEN=${{ steps.jfrog-oicd.outputs.oidc-token }}" >> $GITHUB_ENV
+          echo "OIDC_USER=${{ steps.jfrog-oidc.outputs.oidc-user }}" >> $GITHUB_ENV
+          echo "OIDC_TOKEN=${{ steps.jfrog-oidc.outputs.oidc-token }}" >> $GITHUB_ENV
 
       - name: Test Deployment Permissions
         run: |
           echo "Testing deployment as $OIDC_USER"
-          echo "hello world" > test.txt
+          echo "This step will likely fail or skip if the setup task errored out."
+          echo "replicate error" > test.txt
           jf rt upload test.txt czm-aden-generic-local/
