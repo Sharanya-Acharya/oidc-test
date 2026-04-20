@@ -7,28 +7,25 @@ pool:
 variables:
   CONNECTION_NAME: 'jfrog-oidc-azure1'
 
-jobs:
-- job: JFROG_CLEAN_START
-  displayName: 'JFrog CLI OIDC Pipeline'
-  steps: # This must be indented under the job
-  - checkout: self
+steps:
+- checkout: self
 
-  - script: |
-      echo "Downloading JFrog CLI..."
-      curl -fL https://getcli.jfrog.io/v2-jf | sh
-      chmod +x jf
-      # Using ./jf locally to avoid sudo password prompts on the agent
-      ./jf --version
-      echo "##vso[task.prependpath]$(pwd)"
-    displayName: 'Install JFrog CLI'
+- script: |
+    echo "Downloading JFrog CLI..."
+    curl -fL https://getcli.jfrog.io/v2-jf | sh
+    chmod +x jf
+    ./jf --version
+    # This adds the current folder to the PATH so 'jf' works in the next tasks
+    echo "##vso[task.prependpath]$(pwd)"
+  displayName: 'Install JFrog CLI'
 
-  - task: JfrogCliV2@1
-    displayName: 'Authenticate with JFrog OIDC'
-    inputs:
-      jfrogPlatformConnection: $(CONNECTION_NAME)
-      command: 'jf rt ping'
+- task: JfrogCliV2@1
+  displayName: 'Authenticate with JFrog OIDC'
+  inputs:
+    jfrogPlatformConnection: $(CONNECTION_NAME)
+    command: 'jf rt ping'
 
-  - script: |
-      echo "OIDC Success" > success.txt
-      jf rt upload "success.txt" "example-repo-local/azure-oidc/"
-    displayName: 'Test Upload'
+- script: |
+    echo "OIDC Success - $(Build.BuildId)" > success.txt
+    jf rt upload "success.txt" "example-repo-local/azure-oidc/"
+  displayName: 'Test Upload'
