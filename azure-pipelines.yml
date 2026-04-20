@@ -2,25 +2,33 @@ trigger:
 - main
 
 pool:
-  name: Default # Keep that Mac terminal running!
+  name: Default
 
 variables:
-  CONNECTION_NAME: 'jfrog-oidc-azure1' # Matches your screenshot
+  CONNECTION_NAME: 'jfrog-oidc-azure1'
 
 jobs:
 - job: JFROG_CLEAN_START
-  steps:
-    - checkout: self
+  displayName: 'JFrog CLI OIDC Pipeline'
+  steps: # This must be indented under the job
+  - checkout: self
 
-    - script: |
-        curl -fL https://getcli.jfrog.io/v2-jf | sh
-        chmod +x jf
-        sudo mv jf /usr/local/bin/
-        jf --version
-      displayName: 'Install JFrog CLI'
+  - script: |
+      echo "Downloading JFrog CLI..."
+      curl -fL https://getcli.jfrog.io/v2-jf | sh
+      chmod +x jf
+      # Using ./jf locally to avoid sudo password prompts on the agent
+      ./jf --version
+      echo "##vso[task.prependpath]$(pwd)"
+    displayName: 'Install JFrog CLI'
 
-    - task: JfrogCliV2@1
-      displayName: 'OIDC Auth'
-      inputs:
-        jfrogPlatformConnection: $(CONNECTION_NAME)
-        command: 'jf rt ping'
+  - task: JfrogCliV2@1
+    displayName: 'Authenticate with JFrog OIDC'
+    inputs:
+      jfrogPlatformConnection: $(CONNECTION_NAME)
+      command: 'jf rt ping'
+
+  - script: |
+      echo "OIDC Success" > success.txt
+      jf rt upload "success.txt" "example-repo-local/azure-oidc/"
+    displayName: 'Test Upload'
