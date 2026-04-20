@@ -2,25 +2,25 @@ trigger:
 - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: Default # Keep that Mac terminal running!
 
-steps:
-# 1. Install a specific version to bypass the '2.100' bug
-- task: JFrogToolsInstaller@1
-  inputs:
-    jfrogCliVersion: '2.99.1' 
+variables:
+  CONNECTION_NAME: 'jfrog-oidc-azure1' # Matches your screenshot
 
-# 2. Authenticate using the Service Connection you just created
-- task: JfrogCliV2@1
-  displayName: 'JFrog OIDC Auth'
-  inputs:
-    # Use the EXACT name you typed in the "Service Connection Name" box earlier
-    jfrogPlatformConnection: 'JFrog-OIDC-Conn' 
-    command: 'jf rt ping'
+jobs:
+- job: JFROG_CLEAN_START
+  steps:
+    - checkout: self
 
-# 3. Test the upload
-- task: JfrogCliV2@1
-  displayName: 'Replicate and Test Upload'
-  inputs:
-    jfrogPlatformConnection: 'JFrog-OIDC-Conn'
-    command: 'jf rt upload "test.txt" "czm-aden-generic-local/"'
+    - script: |
+        curl -fL https://getcli.jfrog.io/v2-jf | sh
+        chmod +x jf
+        sudo mv jf /usr/local/bin/
+        jf --version
+      displayName: 'Install JFrog CLI'
+
+    - task: JfrogCliV2@1
+      displayName: 'OIDC Auth'
+      inputs:
+        jfrogPlatformConnection: $(CONNECTION_NAME)
+        command: 'jf rt ping'
